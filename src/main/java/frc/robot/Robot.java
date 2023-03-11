@@ -17,7 +17,9 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.motorcontrol.Victor;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.Solenoid;
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to
@@ -36,18 +38,28 @@ public class Robot extends TimedRobot {
 
   private final WPI_VictorSPX m_rightDrive1 = new WPI_VictorSPX(11);
   private final WPI_VictorSPX m_rightDrive2 = new WPI_VictorSPX(12);
-  private final WPI_VictorSPX some_motor = new WPI_VictorSPX(10); // customize to the controller
+  private final WPI_VictorSPX vertMotor = new WPI_VictorSPX(21); // customize to the controller
+  private final WPI_VictorSPX horzMotor = new WPI_VictorSPX(22);
 
   // Spark MAX can be used in CAN bus or PWM. If using CAN, set CAN ID in the REV Client
-  private final PWMSparkMax vSlide = new PWMSparkMax(14); // change number where ever its plugged  
+  private final PWMSparkMax rotateMotor = new PWMSparkMax(23); // change number where ever its plugged  
 
   private final DifferentialDrive m_robotDrive = new DifferentialDrive(m_leftDrive1, m_rightDrive1);
   private final Joystick m_driver = new Joystick(0);
-  private final Joystick operator = new Joystick(1);
+  private final XboxController m_operator = new XboxController(1);
+//pneumatics  (copied from GitHub/rugh draft)
+  // Solenoid corresponds to a single solenoid.
+  //private final Solenoid m_solenoid = new Solenoid(PneumaticsModuleType.REVPH, 0);
 
-  // private final XboxController m_controller = new XboxController(0);
-  // private final XboxController m_controller = new XboxController(0); // Second
-  // controller goes here
+  // DoubleSolenoid corresponds to a double solenoid.
+  private final DoubleSolenoid m_doubleSolenoid =
+    new DoubleSolenoid(9,PneumaticsModuleType.REVPH, 1, 2);
+
+  //private static final int kSolenoidButton = 3;
+  private static final int kDoubleSolenoidForward = 1;
+  private static final int kDoubleSolenoidReverse = 2;
+  //end of pneumatics
+
   private final Timer m_timer = new Timer();
 
   /**
@@ -102,29 +114,60 @@ public class Robot extends TimedRobot {
     // m_robotDrive.arcadeDrive(-m_controller.getLeftY(), -m_controller.getLeftX());
     // m_arm.set(ControlMode.PercentOutput, m_controller.getRightY());
 
-    // move some motor
+    // move motor that rotates mast
     // Each button has numeric value that needs to be looked up online
-    if (m_driver.getRawButtonPressed(1)) {
-      some_motor.set(.5); // turn on some motor at half speed (0.5) set a value between 0 and 1. 
+    if (m_operator.getRawButtonPressed(1)) {
+      rotateMotor.set(.5); // turn on some motor at half speed (0.5) set a value between 0 and 1. 
       // Make set value negative to run motor other direction
     } else {
-      some_motor.set(0.0);
+      rotateMotor.set(0.0);
     } // turn off a motor
-
-
-    if (operator.getRawButtonPressed(1)) {
-      vSlide.set(0.2); // turn on some motor at set a value between 0 and 1. 
-      // Make set value negative to run motor other direction
+    if (m_operator.getRawButtonPressed(2)) {
+      rotateMotor.set(-.5); 
     } else {
-      vSlide.set(0.0);
-    } // turn off a motor
+      rotateMotor.set(0.0);
+    } 
 
-    if (operator.getRawButtonPressed(2)) {
-      vSlide.set(-0.2); // turn on some motor at set a value between 0 and 1. 
-      // Make set value negative to run motor other direction
+    // move mast horizontally
+    if (m_operator.getRawButtonPressed(3)) {
+      horzMotor.set(.5); 
     } else {
-      vSlide.set(0.0);
-    } // turn off a motor
+      horzMotor.set(0.0);
+    }
+    if (m_operator.getRawButtonPressed(4)) {
+      horzMotor.set(-.5); 
+    } else {
+      rotateMotor.set(0.0);
+    } 
+
+    // move forks vertically
+    if (m_operator.getRawButtonPressed(5)) {
+      vertMotor.set(.5); 
+    } else {
+      vertMotor.set(0.0);
+    }
+    if (m_operator.getRawButtonPressed(6)) {
+      vertMotor.set(-.5); 
+    } else {
+      rotateMotor.set(0.0);
+    } 
+    /*Pneumatics (copied from GitHub/rugh draft)
+     * The output of GetRawButton is true/false depending on whether
+     * the button is pressed; Set takes a boolean for whether
+     * to use the default (false) channel or the other (true).
+     */
+    //m_solenoid.set(m_operator.getRawButton(kSolenoidButton));
+
+    /*
+     * In order to set the double solenoid, if just one button
+     * is pressed, set the solenoid to correspond to that button.
+     * If both are pressed, set the solenoid will be set to Forwards.
+     */
+    if (m_operator.getRawButton(kDoubleSolenoidForward)) {
+      m_doubleSolenoid.set(DoubleSolenoid.Value.kForward);
+    } else if (m_operator.getRawButton(kDoubleSolenoidReverse)) {
+      m_doubleSolenoid.set(DoubleSolenoid.Value.kReverse);
+    }
 
   } // end of teleop period
 
