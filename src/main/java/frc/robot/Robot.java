@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.Compressor;
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to
@@ -42,7 +43,8 @@ public class Robot extends TimedRobot {
   private final WPI_VictorSPX horzMotor = new WPI_VictorSPX(22);
 
   // Spark MAX can be used in CAN bus or PWM. If using CAN, set CAN ID in the REV Client
-  private final PWMSparkMax rotateMotor = new PWMSparkMax(23); // change number where ever its plugged  
+  // plug into PWM  assign channel number according to spot on Rio
+  private final PWMSparkMax rotateMotor = new PWMSparkMax(1); // change number where ever its plugged  
 
   private final DifferentialDrive m_robotDrive = new DifferentialDrive(m_leftDrive1, m_rightDrive1);
   private final Joystick m_driver = new Joystick(0);
@@ -52,12 +54,10 @@ public class Robot extends TimedRobot {
   //private final Solenoid m_solenoid = new Solenoid(PneumaticsModuleType.REVPH, 0);
 
   // DoubleSolenoid corresponds to a double solenoid.
+  //module 9 is the location you plug the main power into the PDH
   private final DoubleSolenoid m_doubleSolenoid =
     new DoubleSolenoid(9,PneumaticsModuleType.REVPH, 1, 2);
 
-  //private static final int kSolenoidButton = 3;
-  private static final int kDoubleSolenoidForward = 1;
-  private static final int kDoubleSolenoidReverse = 2;
   //end of pneumatics
 
   private final Timer m_timer = new Timer();
@@ -114,43 +114,84 @@ public class Robot extends TimedRobot {
     // m_robotDrive.arcadeDrive(-m_controller.getLeftY(), -m_controller.getLeftX());
     // m_arm.set(ControlMode.PercentOutput, m_controller.getRightY());
 
-    // move motor that rotates mast
-    // Each button has numeric value that needs to be looked up online
-    if (m_operator.getRawButtonPressed(1)) {
-      rotateMotor.set(.5); // turn on some motor at half speed (0.5) set a value between 0 and 1. 
+    // OLD_move motor that rotates mast_button
+    //if (m_operator.getRawButtonPressed(1)) {
+      //rotateMotor.set(.1); // turn on some motor at half speed (0.5) set a value between 0 and 1. 
       // Make set value negative to run motor other direction
-    } else {
-      rotateMotor.set(0.0);
-    } // turn off a motor
-    if (m_operator.getRawButtonPressed(2)) {
-      rotateMotor.set(-.5); 
-    } else {
-      rotateMotor.set(0.0);
-    } 
+    //} else {
+      //rotateMotor.set(0.0);
+    //} // turn off a motor
+    //if (m_operator.getRawButtonPressed(2)) {
+      //rotateMotor.set(-.1); 
+    //} else {
+      //rotateMotor.set(0.0);
+    //} 
 
-    // move mast horizontally
-    if (m_operator.getRawButtonPressed(3)) {
-      horzMotor.set(.5); 
-    } else {
-      horzMotor.set(0.0);
-    }
-    if (m_operator.getRawButtonPressed(4)) {
-      horzMotor.set(-.5); 
-    } else {
-      rotateMotor.set(0.0);
-    } 
+    // OLD_move mast horizontally_button
+    //if (m_operator.getRawButtonPressed(3)) {
+      //horzMotor.set(.5); 
+    //} else {
+      //horzMotor.set(0.0);
+    //}
+    //if (m_operator.getRawButtonPressed(4)) {
+      //horzMotor.set(-.5); 
+    //} else {
+      //rotateMotor.set(0.0);
+    //}
 
-    // move forks vertically
-    if (m_operator.getRawButtonPressed(5)) {
-      vertMotor.set(.5); 
-    } else {
-      vertMotor.set(0.0);
+    // OLD_move forks vertically_button
+    //if (m_operator.getRawButtonPressed(5)) {
+      //vertMotor.set(.5); 
+    //} else {
+      //vertMotor.set(0.0);
+    //}
+
+    //if (m_operator.getRawButtonPressed(6)) {
+      //vertMotor.set(-.5); 
+    //} else {
+      //rotateMotor.set(0.0);
+    //}
+
+    // rotate mast
+    double rotateForwardSpeed = m_operator.getRawAxis(3); //Get the manual lift speed
+    if(rotateForwardSpeed > 0) { //If the manual speed is negative..._??negative??
+      rotateForwardSpeed *= 0.2; //Limit the rotate forward speed
+       rotateMotor.set(rotateForwardSpeed);
+    }  else {  //Else...
+      rotateForwardSpeed *= 0; //Limit the down speed_?? it was 0.1??_Oh...joystick down(-) 
+      rotateMotor.set(rotateForwardSpeed);
     }
-    if (m_operator.getRawButtonPressed(6)) {
-      vertMotor.set(-.5); 
-    } else {
-      rotateMotor.set(0.0);
-    } 
+
+    double rotateBackSpeed = m_operator.getRawAxis(2); //Get the manual lift speed
+    if(rotateBackSpeed > 0) { //If the manual speed is negative..._??negative??
+      rotateBackSpeed *= 0.2; //Limit the rotate backward speed
+       rotateMotor.set(rotateBackSpeed);
+    }  else {  //Else...
+      rotateBackSpeed *= 0; //...
+      rotateMotor.set(rotateBackSpeed);
+    }
+
+    // move forks vertical
+    double liftSpeed = m_operator.getRawAxis(1); //Get the manual lift speed
+    if(liftSpeed > 0) { //If the manual speed is negative..._??negative??
+      liftSpeed *= 0.2; //Limit the up speed
+       vertMotor.set(liftSpeed);
+    }  else {  //Else...
+      liftSpeed *= 0.1; //Limit the down speed_?? it was 0.1??_Oh...joystick down(-)
+      vertMotor.set(liftSpeed);
+    }
+
+    // move mast horizontally  --USING CONSTANTS.--
+    double horzSpeed = m_operator.getRawAxis(Constants.RIGHT_STICK_X); //Get the manual lift speed
+    if(horzSpeed > 0) { //If the manual speed is negative..._??negative??
+      horzSpeed *= 0.2; //Limit the forward speed
+       horzMotor.set(horzSpeed);
+    }  else {  //Else...
+      horzSpeed *= 0.2; //Limit the back speed_?? it was 0.1??_Oh...joystick down(-)
+      horzMotor.set(horzSpeed);
+    }
+
+
     /*Pneumatics (copied from GitHub/rugh draft)
      * The output of GetRawButton is true/false depending on whether
      * the button is pressed; Set takes a boolean for whether
@@ -163,11 +204,22 @@ public class Robot extends TimedRobot {
      * is pressed, set the solenoid to correspond to that button.
      * If both are pressed, set the solenoid will be set to Forwards.
      */
-    if (m_operator.getRawButton(kDoubleSolenoidForward)) {
+    if (m_operator.getRawButton(Constants.kDoubleSolenoidForward)) {
       m_doubleSolenoid.set(DoubleSolenoid.Value.kForward);
-    } else if (m_operator.getRawButton(kDoubleSolenoidReverse)) {
+    } else if (m_operator.getRawButton(Constants.kDoubleSolenoidReverse)) {
       m_doubleSolenoid.set(DoubleSolenoid.Value.kReverse);
     }
+
+    //Use pressure limiter... I need to import something I think_DONE??
+    Compressor pcmCompressor = new Compressor(0, PneumaticsModuleType.CTREPCM);
+    Compressor phCompressor = new Compressor(1, PneumaticsModuleType.REVPH);
+
+    pcmCompressor.enableDigital();
+    pcmCompressor.disable();
+
+    boolean enabled = pcmCompressor.IsEnabled();
+    boolean pressureSwitch = pcmCompressor.getPressureSwitchValue();
+    double current = pcmCompressor.getCompressorCurrent();
 
   } // end of teleop period
 
