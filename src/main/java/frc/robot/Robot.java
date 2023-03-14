@@ -214,12 +214,12 @@ public class Robot extends TimedRobot {
     Compressor pcmCompressor = new Compressor(0, PneumaticsModuleType.CTREPCM);
     Compressor phCompressor = new Compressor(1, PneumaticsModuleType.REVPH);
 
-    pcmCompressor.enableDigital();
-    pcmCompressor.disable();
+    phCompressor.enableDigital();
+    phCompressor.disable();
 
-    boolean enabled = pcmCompressor.IsEnabled();
-    boolean pressureSwitch = pcmCompressor.getPressureSwitchValue();
-    double current = pcmCompressor.getCompressorCurrent();
+    boolean enabled = phCompressor.IsEnabled();
+    boolean pressureSwitch = phCompressor.getPressureSwitchValue();
+    double current = phCompressor.getCompressorCurrent();
 
   } // end of teleop period
 
