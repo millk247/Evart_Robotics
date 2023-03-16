@@ -164,7 +164,7 @@ public class Robot extends TimedRobot {
 
     double rotateBackSpeed = m_operator.getRawAxis(2); //Get the manual lift speed
     if(rotateBackSpeed > 0) { //If the manual speed is negative..._??negative??
-      rotateBackSpeed *= 0.2; //Limit the rotate backward speed
+      rotateBackSpeed *= -0.2; //Limit the rotate backward speed
        rotateMotor.set(rotateBackSpeed);
     }  else {  //Else...
       rotateBackSpeed *= 0; //...
